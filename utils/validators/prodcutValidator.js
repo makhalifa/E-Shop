@@ -12,7 +12,7 @@ exports.createProductValidator = [
     .withMessage('Title is required')
     .isLength({ min: 3 })
     .withMessage('Title must be at least 3 characters')
-    .isLength({ max: 32 })
+    .isLength({ max: 100 })
     .withMessage('Title must be at most 32 characters'),
   check('description')
     .notEmpty()
@@ -54,11 +54,7 @@ exports.createProductValidator = [
     .optional()
     .isArray()
     .withMessage('Subcategory must be an array'),
-  check('brand')
-    .notEmpty()
-    .withMessage('Brand is required')
-    .isMongoId()
-    .withMessage('Invalid brand ID'),
+  check('brand').optional().isMongoId().withMessage('Invalid brand ID'),
   check('ratingsAverage')
     .optional()
     .isNumeric()
