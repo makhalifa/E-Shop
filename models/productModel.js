@@ -32,7 +32,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Product price is required'],
       trim: true,
-      max: [9, 'Too long Product price'],
+      max: [2000, 'Too long Product price'],
     },
     priceAfterDiscount: {
       type: Number,
@@ -57,7 +57,6 @@ const productSchema = new mongoose.Schema(
     brand: {
       type: mongoose.Schema.ObjectId,
       ref: 'Brand',
-      required: [true, 'Product brand is required'],
     },
     ratingsAverage: {
       type: Number,
