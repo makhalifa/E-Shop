@@ -12,7 +12,10 @@ exports.getProducts = async (req, res) => {
   const limit = req.query.limit * 1 || 10;
   const skip = (page - 1) * limit;
 
-  const products = await Product.find().skip(skip).limit(limit);
+  const products = await Product.find()
+    .skip(skip)
+    .limit(limit)
+    .populate({ path: 'category', select: 'name -_id' });
   res.status(200).json({ results: products.length, page, data: products });
 };
 
@@ -21,7 +24,10 @@ exports.getProducts = async (req, res) => {
 // @access  Public
 exports.getProduct = asyncHadler(async (req, res, next) => {
   const { id } = req.params;
-  const product = await Product.findById(id);
+  const product = await Product.findById(id).populate({
+    path: 'category',
+    select: 'name -_id',
+  });
   if (!product) {
     return next(new ApiError(404, `No product for this id ${id}`));
   }
@@ -42,7 +48,7 @@ exports.createProduct = asyncHadler(async (req, res) => {
 // @access  Private
 exports.updateProduct = asyncHadler(async (req, res, next) => {
   const { id } = req.params;
-  req.body.slug = slugify(req.body.title);
+  if (req.body.title) req.body.slug = slugify(req.body.title);
 
   const product = await Product.findOneAndUpdate(
     { _id: id },
