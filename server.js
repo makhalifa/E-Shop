@@ -10,6 +10,7 @@ const globalError = require('./middlewares/errorMiddleware');
 const categoryRoute = require('./routes/categoryRoute');
 const subCategoryRoute = require('./routes/subCategoryRoute');
 const brandRoute = require('./routes/brandRoute')
+const productRoute = require('./routes/productRoute');
 
 // connect wiht DB
 dbConnection();
@@ -33,6 +34,7 @@ app.get('/', (req, res) => {
 app.use('/api/v1/categories', categoryRoute);
 app.use('/api/v1/subcategories', subCategoryRoute);
 app.use('/api/v1/brands', brandRoute);
+app.use('/api/v1/products', productRoute);
 
 app.all('*', (req, res, next) => {
   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
