@@ -1,26 +1,25 @@
 const express = require('express');
-const { getProduct, createProduct } = require('../services/productService');
+const {
+  getProduct,
+  createProduct,
+  getProducts,
+  updateProduct,
+  deleteProduct,
+} = require('../services/productService');
 const {
   createProductValidator,
+  getProductValidator,
+  updateProductValidator,
+  deleteProductValidator,
 } = require('../utils/validators/prodcutValidator');
-const {
-  getCategoryValidator,
-  deleteCategoryValidator,
-  updateCategoryValidator,
-} = require('../utils/validators/categoryValidator');
-const {
-  getCategory,
-  updateCategory,
-  deleteCategory,
-} = require('../services/categoryService');
 
 const router = express.Router();
 
-router.route('/').get(getProduct).post(createProductValidator, createProduct);
+router.route('/').get(getProducts).post(createProductValidator, createProduct);
 router
   .route('/:id')
-  .get(getCategoryValidator, getCategory)
-  .put(updateCategoryValidator, updateCategory)
-  .delete(deleteCategoryValidator, deleteCategory);
+  .get(getProductValidator, getProduct)
+  .put(updateProductValidator, updateProduct)
+  .delete(deleteProductValidator, deleteProduct);
 
 module.exports = router;
