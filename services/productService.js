@@ -8,14 +8,59 @@ const Product = require('../models/productModel');
 // @route   GET /api/v1/products
 // @access  Public
 exports.getProducts = async (req, res) => {
+  // 1) Filteration
+  const queryStringOjb = { ...req.query };
+  const excludedFields = ['page', 'sort', 'limit', 'fields', 'keyword'];
+  excludedFields.forEach((field) => delete queryStringOjb[field]);
+  console.log(queryStringOjb);
+
+  // 2) Advance filteration
+  let queryStr = JSON.stringify(queryStringOjb);
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);
+
+  // 3) pagination
   const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 10;
+  const limit = req.query.limit * 1 || 15;
   const skip = (page - 1) * limit;
 
-  const products = await Product.find()
+  // build query
+  const mongooseQuery = Product.find(JSON.parse(queryStr))
     .skip(skip)
     .limit(limit)
     .populate({ path: 'category', select: 'name -_id' });
+
+  // 4) Sorting
+  if (req.query.sort) {
+    // sort=price,ratingsAverage
+    const sortBy = req.query.sort.split(',').join(' '); // sort('price ratingsAverage')
+    mongooseQuery.sort(sortBy);
+  } else {
+    mongooseQuery.sort('-createdAt'); // default sorting
+  }
+
+  // 5) Field limiting
+  if (req.query.fields) {
+    console.log(req.query.fields);
+    // fields=title,price
+    const fields = req.query.fields.split(',').join(' '); // fields('title price')
+    mongooseQuery.select(fields);
+  } else {
+    mongooseQuery.select('-__v');
+  }
+
+  // 6) Searching
+  if (req.query.keyword) {
+    // search by title or description
+    const query = {};
+    query.$or = [
+      { title: { $regex: req.query.keyword, $options: 'i' } }, // i for case-insensitive
+      { description: { $regex: req.query.keyword, $options: 'i' } },
+    ];
+  }
+
+  // execute query
+  const products = await mongooseQuery;
+
   res.status(200).json({ results: products.length, page, data: products });
 };
 
