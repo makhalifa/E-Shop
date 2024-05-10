@@ -42,11 +42,16 @@ class ApiFeatures {
   search() {
     if (this.queryString.keyword) {
       // search by title or description
-      const query = {};
-      query.$or = [
-        { title: { $regex: this.queryString.keyword, $options: 'i' } }, // i for case-insensitive
-        { description: { $regex: this.queryString.keyword, $options: 'i' } },
-      ];
+      let query = {};
+      if (this.mongooseQuery.model.modelName === 'Product') {
+        query.$or = [
+          { title: { $regex: this.queryString.keyword, $options: 'i' } }, // i for case-insensitive
+          { description: { $regex: this.queryString.keyword, $options: 'i' } },
+        ];
+      } else {
+        console.log(this.queryString.keyword);
+        query = { name: { $regex: this.queryString.keyword, $options: 'i' } };
+      }
 
       this.mongooseQuery.find(query);
     }
