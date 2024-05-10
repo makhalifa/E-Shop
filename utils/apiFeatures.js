@@ -53,12 +53,30 @@ class ApiFeatures {
     return this;
   }
 
-  paginate() {
+  paginate(countDocuments) {
     const page = this.queryString.page * 1 || 1;
     const limit = this.queryString.limit * 1 || 15;
     const skip = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Pagination Results
+    const pagination = {};
+    pagination.currentPage = page;
+    pagination.limit = limit;
+    // pagination.total = await this.mongooseQuery.model.modelName.countDocuments();
+    // pagination.totalPages = Math.ceil(pagination.total / limit);
+    pagination.numOfPages = Math.ceil(countDocuments / limit);
+
+    // next page
+    if (endIndex < countDocuments) {
+      pagination.next = page + 1;
+    }
+    if (skip > 0) {
+      pagination.prev = page - 1;
+    }
 
     this.mongooseQuery.skip(skip).limit(limit);
+    this.paginationResult = pagination;
     return this;
   }
 
