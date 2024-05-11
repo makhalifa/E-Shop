@@ -11,7 +11,7 @@ const {
   getProductValidator,
   updateProductValidator,
   deleteProductValidator,
-} = require('../utils/validators/prodcutValidator');
+} = require('../utils/validators/productValidator');
 
 const router = express.Router();
 
