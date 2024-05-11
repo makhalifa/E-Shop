@@ -9,10 +9,7 @@ exports.getProducts = Factory.getAll(Product);
 // @desc    Get specific product by id
 // @route   GET /api/v1/products/:id
 // @access  Public
-exports.getProduct = Factory.getOne(Product, {
-  path: 'category',
-  select: 'name -_id',
-});
+exports.getProduct = Factory.getOne(Product);
 
 // @desc    Create new product
 // @route   POST /api/v1/products
