@@ -1,13 +1,17 @@
 const SubCategory = require('../models/subCategoryModel');
 const Factory = require('./handlersFactory');
 
-// Middleware to set category id to body For Nested Post
+// NOTE: Middleware functions
+// @desc    Middleware to set category id to body
+// @route   POST /api/v1/categories/:categoryId/subcategories
 exports.setCategoryIdToBody = (req, res, next) => {
   if (!req.body.category) req.body.category = req.params.categoryId;
   next();
 };
 
-// Middleware to create filter object for Nested Get All
+// NOTE: Middleware functions
+// @desc    Middleware to create filter object
+// @route   GET /api/v1/categories/:categoryId/subcategories
 exports.createFilterObj = (req, res, next) => {
   const filterObject = {};
   if (req.params.categoryId) filterObject.category = req.params.categoryId;
@@ -23,10 +27,7 @@ exports.getSubCategories = Factory.getAll(SubCategory);
 // @desc    Get specific sub-category by id
 // @route   GET /api/v1/subcategories/:id
 // @access  Public
-exports.getSubCategory = Factory.getOne(SubCategory, {
-  path: 'category',
-  select: 'name -_id',
-});
+exports.getSubCategory = Factory.getOne(SubCategory);
 
 // @desc    Create new sub-category
 // @route   POST /api/v1/subcategories
