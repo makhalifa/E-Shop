@@ -1,4 +1,6 @@
-const { check } = require('express-validator');
+const { check, body } = require('express-validator');
+const slugify = require('slugify');
+
 const validationMiddleware = require('../../middlewares/validatorMiddleware');
 
 exports.getBrandValidator = [
@@ -13,19 +15,27 @@ exports.createBrandValidator = [
     .isLength({ min: 3 })
     .withMessage('Name must be at least 3 characters')
     .isLength({ max: 32 })
-    .withMessage('Name must be at most 32 characters'),
+    .withMessage('Name must be at most 32 characters')
+    .custom((value, { req }) => {
+      req.body.slug = slugify(value);
+      return true;
+    }),
   validationMiddleware,
 ];
 
 exports.updateBrandValidator = [
   check('id').isMongoId().withMessage('Invalid ID'),
-  check('name')
+  body('name')
     .notEmpty()
     .withMessage('Name is required')
     .isLength({ min: 3 })
     .withMessage('Name must be at least 3 characters')
     .isLength({ max: 32 })
-    .withMessage('Name must be at most 32 characters'),
+    .withMessage('Name must be at most 32 characters')
+    .custom((value, { req }) => {
+      req.body.slug = slugify(value);
+      return true;
+    }),
   validationMiddleware,
 ];
 
