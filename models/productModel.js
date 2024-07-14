@@ -72,6 +72,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// pre /^find/ => will be executed before find query
 productSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'category',
