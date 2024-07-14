@@ -12,7 +12,7 @@ const sendErrorProd = (err, res) =>
     message: err.message,
   });
 
-const globalError = (err, _req, res, _next) => {
+const globalError = (err, _req, res, _next) => { 
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
