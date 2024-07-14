@@ -1,15 +1,22 @@
+// Core modules 
+const path = require('path');
+
+// Third-party modules
 const dotenv = require('dotenv');
 const express = require('express');
-const morgan = require('morgan');
+const morgan = require('morgan'); // http request logger
 
 dotenv.config({ path: 'config.env' });
 
+// local modules
 const ApiError = require('./utils/apiError');
 const dbConnection = require('./config/database');
 const globalError = require('./middlewares/errorMiddleware');
+
+// Routes
 const categoryRoute = require('./routes/categoryRoute');
 const subCategoryRoute = require('./routes/subCategoryRoute');
-const brandRoute = require('./routes/brandRoute')
+const brandRoute = require('./routes/brandRoute');
 const productRoute = require('./routes/productRoute');
 
 // connect wiht DB
@@ -19,7 +26,9 @@ dbConnection();
 const app = express();
 
 // middleware
-app.use(express.json());
+app.use(express.json()); // for parsing application/json
+app.use(express.static(path.join(__dirname, 'uploads')));
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
   console.log(`Mode: ${process.env.NODE_ENV}`);
@@ -37,7 +46,8 @@ app.use('/api/v1/brands', brandRoute);
 app.use('/api/v1/products', productRoute);
 
 app.all('*', (req, res, next) => {
-  next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
+  // catch all routes that are not defined
+  next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`)); // throw error
 });
 
 // Global error handler middleware
