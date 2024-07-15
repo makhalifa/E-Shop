@@ -23,5 +23,22 @@ const brandSchema = new mongoose.Schema(
   { timestamps: true } // timestamps: true will create createdAt and updatedAt fields
 );
 
+const setImageUrl = (doc) => {
+  // return image base url + image filename
+  if (doc.image) {
+    const imageUrl = `${process.env.BASE_URL}/brands/${doc.image}`;
+    doc.image = imageUrl;
+  }
+};
+
+// Middleware functions
+brandSchema.post('init', (doc) => {
+  setImageUrl(doc);
+});
+
+brandSchema.post('save', (doc) => {
+  setImageUrl(doc);
+});
+
 // 2- Create Model
 module.exports = mongoose.model('Brand', brandSchema);
