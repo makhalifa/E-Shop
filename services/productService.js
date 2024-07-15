@@ -1,5 +1,54 @@
+const sharp = require('sharp');
+const {
+  uploadMixOfImages,
+} = require('../middlewares/uploadImageMiddleware');
 const Product = require('../models/productModel');
 const Factory = require('./handlersFactory');
+
+exports.uploadProductImages = uploadMixOfImages([
+  {
+    name: 'imageCover',
+    maxCount: 1,
+  },
+  {
+    name: 'images',
+    maxCount: 5,
+  },
+]);
+
+exports.resizeProductImages = async (req, res, next) => {
+  console.log(req.files);
+  // Image processing for imageCover
+  if (req.files.imageCover) {
+    const imageCoverFilename = `product-${Date.now()}-cover.jpeg`;
+
+    await sharp(req.files.imageCover[0].buffer)
+      .resize(2000, 1333)
+      .toFormat('jpeg')
+      .jpeg({ quality: 90 })
+      .toFile(`uploads/products/${imageCoverFilename}`);
+
+    req.body.imageCover = imageCoverFilename; // save imageCover in req.body
+  }
+
+  // Image processing for images
+  if (req.files.images) {
+    req.body.images = [];
+    await Promise.all(  // use Promise.all to process all images
+      req.files.images.map(async (img, i) => {
+        const filename = `product-${Date.now()}-${i + 1}.jpeg`;
+        await sharp(img.buffer)
+          .resize(600, 600)
+          .toFormat('jpeg')
+          .jpeg({ quality: 90 })
+          .toFile(`uploads/products/${filename}`);
+        req.body.images.push(filename);
+      })
+    );
+  }
+
+  next();
+};
 
 // @desc    Get all products
 // @route   GET /api/v1/products
