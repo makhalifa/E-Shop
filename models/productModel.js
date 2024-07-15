@@ -72,6 +72,27 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const setImageUrl = (doc) => {
+  if (doc.imageCover) {
+    const imageUrl = `${process.env.BASE_URL}/products/${doc.imageCover}`;
+    doc.imageCover = imageUrl;
+  }
+  if (doc.images) {
+    const imagesUrl = doc.images.map(
+      (image) => `${process.env.BASE_URL}/products/${image}`
+    );
+    doc.images = imagesUrl;
+  }
+};
+
+productSchema.post('init', (doc) => {
+  setImageUrl(doc);
+});
+
+productSchema.post('save', (doc) => {
+  setImageUrl(doc);
+});
+
 // pre /^find/ => will be executed before find query
 productSchema.pre(/^find/, function (next) {
   this.populate({
