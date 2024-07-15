@@ -25,6 +25,7 @@ exports.createCategoryValidator = [
 exports.updateCategoryValidator = [
   check('id').isMongoId().withMessage('Invalid ID'),
   check('name')
+    .optional()
     .notEmpty()
     .withMessage('Name is required')
     .isLength({ min: 3 })

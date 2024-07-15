@@ -19,6 +19,7 @@ exports.createProductValidator = [
     .withMessage('Title must be at most 32 characters')
     .custom((value, { req }) => {
       req.body.slug = slugify(value);
+      return true;
     }),
   check('description')
     .notEmpty()
