@@ -13,7 +13,7 @@ exports.resizeImage = AsyncHandler(async (req, res, next) => {
 
   await sharp(req.file.buffer)
     .resize(600, 600)
-    .toFormat('jpeg') 
+    .toFormat('jpeg')
     .jpeg({ quality: 95 })
     .toFile(`uploads/users/${filename}`);
 
@@ -21,6 +21,16 @@ exports.resizeImage = AsyncHandler(async (req, res, next) => {
 
   next();
 });
+
+exports.removePasswordField = (req, res, next) => {
+  if (req.body.password) delete req.body.password;
+  next();
+};
+
+// @desc    Update user password
+// @route   PUT /api/v1/users/change-password/:id
+// @access  Private
+exports.changeUserPassword = Factory.updateSingleField(User, 'password');
 
 // @desc    Get all Users
 // @route   GET /api/v1/users
