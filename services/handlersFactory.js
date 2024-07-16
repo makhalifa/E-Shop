@@ -1,13 +1,13 @@
-const asyncHadler = require('express-async-handler');
+const asyncHandler = require('express-async-handler');
 const ApiError = require('../utils/apiError');
 const ApiFeatures = require('../utils/apiFeatures');
 
 exports.getOne = (Model) =>
-  asyncHadler(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const query = Model.findById(id);
     // if (popOptions) query = query.populate(popOptions);
-    const doc = await query; 
+    const doc = await query;
     if (!doc) {
       return next(new ApiError(404, `No document found with this id ${id}`));
     }
@@ -15,7 +15,7 @@ exports.getOne = (Model) =>
   });
 
 exports.getAll = (Model) =>
-  asyncHadler(async (req, res) => {
+  asyncHandler(async (req, res) => {
     let filter = {};
     if (req.filterObj) filter = req.filterObj;
     // build query
@@ -39,13 +39,13 @@ exports.getAll = (Model) =>
   });
 
 exports.createOne = (Model) =>
-  asyncHadler(async (req, res) => {
+  asyncHandler(async (req, res) => {
     const doc = await Model.create(req.body);
     res.status(201).json({ data: doc });
   });
 
 exports.updateOne = (Model) =>
-  asyncHadler(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const doc = await Model.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -57,8 +57,22 @@ exports.updateOne = (Model) =>
     res.status(200).json({ data: doc });
   });
 
+exports.updateSingleField = (Model, field) =>
+  asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const doc = await Model.findOneAndUpdate(
+      { _id: id },
+      { [field]: req.body[field] },
+      { new: true }
+    );
+    if (!doc) {
+      return next(new ApiError(404, `No document found with this id ${id}`));
+    }
+    res.status(200).json({ data: doc });
+  });
+
 exports.deleteOne = (Model) =>
-  asyncHadler(async (req, res, next) => {
+  asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const doc = await Model.findByIdAndDelete(id);
     if (!doc) {
