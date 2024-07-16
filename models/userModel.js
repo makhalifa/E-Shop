@@ -53,7 +53,7 @@ userSchema.post('save', (doc) => {
 });
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password')) {   // if password is not modified
     return next();
   }
 
