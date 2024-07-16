@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
@@ -49,6 +50,17 @@ userSchema.post('init', (doc) => {
 
 userSchema.post('save', (doc) => {
   setImgUrl(doc);
+});
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  // Hashing user password
+  const salt = bcrypt.genSaltSync(10); // 10 rounds
+  this.password = await bcrypt.hashSync(this.password, salt);
+  next();
 });
 
 module.exports = mongoose.model('User', userSchema);
