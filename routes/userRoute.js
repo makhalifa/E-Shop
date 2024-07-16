@@ -7,15 +7,24 @@ const {
   deleteUser,
   uploadUserImage,
   resizeImage,
+  removePasswordField,
+  changeUserPassword,
 } = require('../services/userService');
 const {
   createUserValidator,
   getUserValidator,
   updateUserValidator,
   deleteUserValidator,
+  changeUserPasswordValidator,
 } = require('../utils/validators/userValidator');
 
 const router = express.Router();
+
+router.put(
+  '/change-password/:id',
+  changeUserPasswordValidator,
+  changeUserPassword
+);
 
 router
   .route('/')
@@ -25,7 +34,13 @@ router
 router
   .route('/:id')
   .get(getUserValidator, getUser)
-  .put(uploadUserImage, resizeImage, updateUserValidator, updateUser)
+  .put(
+    removePasswordField,
+    uploadUserImage,
+    resizeImage,
+    updateUserValidator,
+    updateUser
+  )
   .delete(deleteUserValidator, deleteUser);
 
 module.exports = router;
