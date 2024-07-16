@@ -52,15 +52,14 @@ userSchema.post('save', (doc) => {
   setImgUrl(doc);
 });
 
+// hash password before saving or updating
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {   // if password is not modified
-    return next();
+  if (!this.isModified('password')) {
+    next();
   }
 
-  // Hashing user password
-  const salt = bcrypt.genSaltSync(10); // 10 rounds
-  this.password = await bcrypt.hashSync(this.password, salt);
-  next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 module.exports = mongoose.model('User', userSchema);
