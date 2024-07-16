@@ -1,5 +1,6 @@
-const { check, body } = require('express-validator');
 const slugify = require('slugify');
+const bcrypt = require('bcryptjs');
+const { check, body } = require('express-validator');
 
 const User = require('../../models/userModel');
 
@@ -61,14 +62,11 @@ exports.getUserValidator = [
 
 exports.updateUserValidator = [
   check('id').isMongoId().withMessage('Invalid ID'),
+
   body('name')
     .optional()
-    .notEmpty()
-    .withMessage('Name is required')
     .isLength({ min: 3 })
-    .withMessage('Name must be at least 3 characters')
-    .isLength({ max: 32 })
-    .withMessage('Name must be at most 32 characters')
+    .withMessage('Too short name')
     .custom((value, { req }) => {
       req.body.slug = slugify(value);
       return true;
@@ -79,6 +77,53 @@ exports.updateUserValidator = [
 
 exports.deleteUserValidator = [
   check('id').isMongoId().withMessage('Invalid ID'),
+  validationMiddleware,
+];
+
+exports.changeUserPasswordValidator = [
+  check('id').isMongoId().withMessage('Invalid ID'),
+
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required')
+    .isLength({ min: 6 })
+    .withMessage('Current password must be at least 6 characters')
+    .isLength({ max: 32 })
+    .withMessage('Current password must be at most 32 characters'),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
+    .isLength({ max: 32 })
+    .withMessage('Password must be at most 32 characters'),
+
+  body('passwordConfirm')
+    .notEmpty()
+    .withMessage('Password confirmation is required')
+    .custom(async (passConfirm, { req }) => {
+      // 1) Check if password is correct
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const IsMatch = await bcrypt.compareSync(req.body.currentPassword, user.password);
+      if (!IsMatch) {
+        throw new Error('Current password is incorrect');
+      }
+
+      // 2) Check if password confirmation matches the new password
+      if (passConfirm !== req.body.password) {
+        throw new Error('Password Confirmation is incorrect');
+      }
+
+      // 3) If everything is ok, hash the new password
+      const salt = bcrypt.genSaltSync();
+      req.body.password = bcrypt.hashSync(passConfirm, salt);
+
+      return true;
+    }),
   validationMiddleware,
 ];
 
