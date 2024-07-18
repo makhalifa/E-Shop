@@ -1,4 +1,4 @@
-// Core modules 
+// Core modules
 const path = require('path');
 
 // Third-party modules
@@ -13,18 +13,14 @@ const ApiError = require('./utils/apiError');
 const dbConnection = require('./config/database');
 const globalError = require('./middlewares/errorMiddleware');
 
-// Routes
-const categoryRoute = require('./routes/categoryRoute');
-const subCategoryRoute = require('./routes/subCategoryRoute');
-const brandRoute = require('./routes/brandRoute');
-const productRoute = require('./routes/productRoute');
-const userRoute = require('./routes/userRoute');
-
 // connect wiht DB
 dbConnection();
 
 // express app
 const app = express();
+
+// routes
+const routes = require('./routes/router');
 
 // middleware
 app.use(express.json()); // for parsing application/json
@@ -41,11 +37,7 @@ app.get('/', (req, res) => {
 });
 
 // Mount routes
-app.use('/api/v1/categories', categoryRoute);
-app.use('/api/v1/subcategories', subCategoryRoute);
-app.use('/api/v1/brands', brandRoute);
-app.use('/api/v1/products', productRoute);
-app.use('/api/v1/users', userRoute);
+app.use('/api/v1', routes);
 
 app.all('*', (req, res, next) => {
   // catch all routes that are not defined
