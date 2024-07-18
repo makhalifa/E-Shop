@@ -9,6 +9,7 @@ const {
   resizeImage,
   removePasswordField,
   changeUserPassword,
+  changeUserPasswordDto,
 } = require('../services/userService');
 const {
   createUserValidator,
@@ -23,6 +24,7 @@ const router = express.Router();
 router.put(
   '/change-password/:id',
   changeUserPasswordValidator,
+  changeUserPasswordDto,
   changeUserPassword
 );
 
