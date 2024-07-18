@@ -54,7 +54,10 @@ exports.login = asyncHandler(async (req, res) => {
   res.status(200).json({ data: user, token });
 });
 
-exports.protect= asyncHandler(async (req, res, next) => {
+// this middleware is used to protect routes that require authentication
+// it checks the token in the headers and verifies it
+// if the token is valid it adds the user object to the request so that the protected route can use it
+exports.protect = asyncHandler(async (req, res, next) => {
   let token;
   // 1) Get token from the headers
   if (
@@ -64,7 +67,10 @@ exports.protect= asyncHandler(async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
   if (!token) {
-    throw new ApiError(401, 'You are not logged in');
+    throw new ApiError(
+      401,
+      'You are not logged in, please log in to get access'
+    );
   }
   // 2) Decode the token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -91,3 +97,12 @@ exports.protect= asyncHandler(async (req, res, next) => {
   req.user = user;
   next();
 });
+
+// Middleware to check if the user is allowed to perform a specific action
+exports.allowedTo = (...roles) =>
+  asyncHandler(async (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      throw new ApiError(403, 'You are not allowed to perform this action');
+    }
+    next();
+  });
