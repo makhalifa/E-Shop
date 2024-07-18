@@ -26,11 +26,9 @@ const categorySchema = new mongoose.Schema(
 const setImageUrl = (doc) => {
   // return image base url + image filename
   if (doc.image) {
-    console.log(doc.image);
     const imageUrl = `${process.env.BASE_URL}/categories/${doc.image}`;
     doc.image = imageUrl;
   }
-  console.log(doc);
   return doc;
 };
 
