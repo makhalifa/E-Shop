@@ -22,15 +22,23 @@ exports.resizeImage = AsyncHandler(async (req, res, next) => {
   next();
 });
 
-exports.removePasswordField = (req, res, next) => {
+exports.removePasswordField = (req, _res, next) => {
   if (req.body.password) delete req.body.password;
+  next();
+};
+
+exports.changeUserPasswordDto = (req, _res, next) => {
+  console.log(req.body);
+  const { password, passwordChangedAt } = req.body;
+  req.body = { password, passwordChangedAt };
   next();
 };
 
 // @desc    Update user password
 // @route   PUT /api/v1/users/change-password/:id
 // @access  Private
-exports.changeUserPassword = Factory.updateSingleField(User, 'password');
+// exports.changeUserPassword = Factory.updateSingleField(User, 'password');
+exports.changeUserPassword = Factory.updateOne(User);
 
 // @desc    Get all Users
 // @route   GET /api/v1/users
