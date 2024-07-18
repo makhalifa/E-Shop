@@ -91,36 +91,35 @@ exports.changeUserPasswordValidator = [
     .isLength({ max: 32 })
     .withMessage('Current password must be at most 32 characters'),
 
+  body('passwordConfirm')
+    .notEmpty()
+    .withMessage('Password confirmation is required'),
+
   body('password')
     .notEmpty()
     .withMessage('Password is required')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters')
     .isLength({ max: 32 })
-    .withMessage('Password must be at most 32 characters'),
-
-  body('passwordConfirm')
-    .notEmpty()
-    .withMessage('Password confirmation is required')
-    .custom(async (passConfirm, { req }) => {
+    .withMessage('Password must be at most 32 characters')
+    .custom(async (pass, { req }) => {
       // 1) Check if password is correct
       const user = await User.findById(req.params.id);
       if (!user) {
         throw new Error('User not found');
       }
-      const IsMatch = await bcrypt.compareSync(req.body.currentPassword, user.password);
+      const IsMatch = await bcrypt.compareSync(
+        req.body.currentPassword,
+        user.password
+      );
       if (!IsMatch) {
         throw new Error('Current password is incorrect');
       }
 
       // 2) Check if password confirmation matches the new password
-      if (passConfirm !== req.body.password) {
+      if (pass !== req.body.passwordConfirm) {
         throw new Error('Password Confirmation is incorrect');
       }
-
-      // 3) If everything is ok, hash the new password
-      const salt = bcrypt.genSaltSync();
-      req.body.password = bcrypt.hashSync(passConfirm, salt);
 
       return true;
     }),
