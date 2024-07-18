@@ -17,7 +17,6 @@ exports.uploadProductImages = uploadMixOfImages([
 ]);
 
 exports.resizeProductImages = async (req, res, next) => {
-  console.log(req.files);
   // Image processing for imageCover
   if (req.files.imageCover) {
     const imageCoverFilename = `product-${Date.now()}-cover.jpeg`;
@@ -62,15 +61,15 @@ exports.getProduct = Factory.getOne(Product);
 
 // @desc    Create new product
 // @route   POST /api/v1/products
-// @access  Private
+// @access  Private - Admin, Moderator
 exports.createProduct = Factory.createOne(Product);
 
 // @desc    Update product by id
 // @route   PUT /api/v1/products/:id
-// @access  Private
+// @access  Private - Admin, Moderator
 exports.updateProduct = Factory.updateOne(Product);
 
 // @desc    Delete product by id
 // @route   DELETE /api/v1/products/:id
-// @access  Private
+// @access  Private - Admin
 exports.deleteProduct = Factory.deleteOne(Product);
