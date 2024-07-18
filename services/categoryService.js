@@ -1,6 +1,6 @@
-const Factory = require('./handlersFactory');
 const sharp = require('sharp');
 const AsyncHandler = require('express-async-handler');
+const Factory = require('./handlersFactory');
 const { uploadSingleImage } = require('../middlewares/uploadImageMiddleware');
 const Category = require('../models/categoryModel');
 
@@ -34,15 +34,15 @@ exports.getCategory = Factory.getOne(Category);
 
 // @desc    Create new category
 // @route   POST /api/v1/categories
-// @access  Private
+// @access  Private - Admin, Moderator
 exports.createCategory = Factory.createOne(Category);
 
 // @desc    Update category by id
 // @route   PUT /api/v1/categories/:id
-// @access  Private
+// @access  Private - Admin, Moderator
 exports.updateCategory = Factory.updateOne(Category);
 
 // @desc    Delete category by id
 // @route   DELETE /api/v1/categories/:id
-// @access  Private
+// @access  Private - Admin
 exports.deleteCategory = Factory.deleteOne(Category);
