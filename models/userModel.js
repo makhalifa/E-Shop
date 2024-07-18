@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Password is required'],
       min: [6, 'Password must be at least 6 characters'],
     },
+    // record for the last password change
+    passwordChangedAt: Date,
     role: {
       type: String,
       enum: ['user', 'admin'],
@@ -60,6 +62,27 @@ userSchema.pre('save', async function (next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+});
+
+// when the password change we need to update the passwordChangedAt field
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || this.isNew) {
+    next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// pre mongoose middleware when findByIdAndUpdate this update password bcrypt the password
+userSchema.pre('findOneAndUpdate', async function (next) {
+  const doc = this.getUpdate();
+  if (doc.password) {
+    const salt = await bcrypt.genSalt(10);
+    doc.password = await bcrypt.hash(doc.password, salt);
+    doc.passwordChangedAt = Date.now();
+  }
+  next();
 });
 
 module.exports = mongoose.model('User', userSchema);
