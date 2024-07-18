@@ -17,6 +17,7 @@ const {
   updateCategoryValidator,
   deleteCategoryValidator,
 } = require('../utils/validators/categoryValidator');
+const { protect } = require('../services/authService');
 
 router.use('/:categoryId/subcategories', require('./subCategoryRoute'));
 
@@ -24,6 +25,7 @@ router
   .route('/')
   .get(getcategories)
   .post(
+    protect,
     uploadCategoryImage,
     resizeImage,
     createCategoryValidator,
