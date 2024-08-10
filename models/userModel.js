@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema(
     },
     // record for the last password change
     passwordChangedAt: Date,
+    passwordResetCode: String,
+    passwordResetExpires: Date,
+    passwordResetVerified: Boolean,
     role: {
       type: String,
       enum: ['user', 'moderator', 'admin'],
@@ -60,15 +63,6 @@ userSchema.pre('save', async function (next) {
     next();
   }
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
-
-// when the password change we need to update the passwordChangedAt field
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password') || this.isNew) {
-    next();
-  }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
