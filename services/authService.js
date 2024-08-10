@@ -1,58 +1,11 @@
+const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/userModel');
 const ApiError = require('../utils/apiError');
-
-const generateAuthToken = (payload) =>
-  jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
-  });
-
-// @desc    SignUp
-// @route   POST /api/v1/auth/signup
-// @access  Public
-exports.signup = asyncHandler(async (req, res) => {
-  const userDto = {};
-  Object.assign(userDto, req.body);
-
-  const user = await User.create(userDto);
-
-  if (!user) {
-    throw new ApiError(400, 'Invalid user data');
-  }
-
-  // generate JWT
-  const token = generateAuthToken({ userId: user._id });
-
-  // send response
-  res.status(201).json({ data: user, token });
-});
-
-// @desc    Login
-// @route   POST /api/v1/auth/login
-// @access  Public
-exports.login = asyncHandler(async (req, res) => {
-  // 1) check if password and email in the body (validation)
-  // 2) check if user exists
-  const user = await User.findOne({ email: req.body.email });
-
-  // 3) check if password is correct
-  const isMatch = user
-    ? await bcrypt.compareSync(req.body.password, user.password)
-    : false;
-
-  // For security reasons
-  if (!user || !isMatch) {
-    // unauthenticated
-    throw new ApiError(401, 'Invalid email or password');
-  }
-  // 4) generate JWT
-  const token = generateAuthToken({ userId: user._id });
-
-  // 5) send response
-  res.status(200).json({ data: user, token });
-});
+const sendEmail = require('../utils/sendEmail');
+const createToken = require('../utils/createToken');
 
 // this middleware is used to protect routes that require authentication
 // it checks the token in the headers and verifies it
@@ -93,8 +46,14 @@ exports.protect = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // 5) Grant access
+  // 5) check if the user account is active
+  if (!user.active) {
+    throw new ApiError(401, 'Your account is not active');
+  }
+
+  // 6) Grant access
   req.user = user;
+
   next();
 });
 
@@ -106,3 +65,158 @@ exports.allowedTo = (...roles) =>
     }
     next();
   });
+
+// @desc    SignUp
+// @route   POST /api/v1/auth/signup
+// @access  Public
+exports.signup = asyncHandler(async (req, res) => {
+  const userDto = {};
+  Object.assign(userDto, req.body);
+
+  const user = await User.create(userDto);
+
+  if (!user) {
+    throw new ApiError(400, 'Invalid user data');
+  }
+
+  // generate JWT
+  const token = createToken({ userId: user._id });
+
+  // send response
+  res.status(201).json({ data: user, token });
+});
+
+// @desc    Login
+// @route   POST /api/v1/auth/login
+// @access  Public
+exports.login = asyncHandler(async (req, res) => {
+  // 1) check if password and email in the body (validation)
+  // 2) check if user exists
+  const user = await User.findOne({ email: req.body.email });
+
+  // 3) check if password is correct
+  const isMatch = user
+    ? await bcrypt.compareSync(req.body.password, user.password)
+    : false;
+
+  // For security reasons
+  if (!user || !isMatch) {
+    // unauthenticated
+    throw new ApiError(401, 'Invalid email or password');
+  }
+  // 4) generate JWT
+  const token = createToken({ userId: user._id });
+
+  // 5) send response
+  res.status(200).json({ data: user, token });
+});
+
+// @desc    Forgot password
+// @route   POST /api/v1/auth/forgot-password
+// @access  Public
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const { user } = req;
+  // 1) check if the email is valid (validation)
+  // 2) check if the user exists (validation)
+  // 3) check if the user forgot password code is expired
+  if (user.passwordResetExpires > Date.now()) {
+    throw new ApiError(400, 'Password reset code is expired, please try again');
+  }
+  // 3) generate a 6 digits random and save it in db
+  const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+  // hash the reset code
+  const hashedResetCode = crypto
+    .createHash('sha256')
+    .update(resetCode)
+    .digest('hex');
+
+  // 4) save the reset code in db
+  user.passwordResetCode = hashedResetCode;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  user.passwordResetVerified = false;
+  await user.save();
+
+  // 5) send email
+  try {
+    await sendEmail({
+      email: req.user.email,
+      subject: 'Reset your password',
+      message: `Your reset code is: ${resetCode}\n Valid for 10 minutes`,
+    });
+  } catch (error) {
+    user.passwordResetCode = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordResetVerified = undefined;
+    await user.save();
+    throw new ApiError(
+      500,
+      'Something went wrong while sending email, please try again'
+    );
+  }
+  // 6) send response
+  res
+    .status(200)
+    .json({ status: 'success', message: 'Reset code sent to your email' });
+});
+
+exports.verifyPasswordResetCode = asyncHandler(async (req, res) => {
+  const { email, resetCode } = req.body;
+
+  // check if user exists
+  const user = await User.findOne({ email }).select('+passwordResetCode');
+  if (!user) {
+    throw new ApiError(401, 'Invalid email or reset code');
+  }
+
+  const hashedResetCode = crypto
+    .createHash('sha256')
+    .update(resetCode)
+    .digest('hex');
+
+  // check if the reset code is correct
+  if (user.passwordResetCode !== hashedResetCode) {
+    throw new ApiError(401, 'Invalid email or reset code');
+  }
+
+  // check if the reset code is expired
+  if (user.passwordResetExpires < Date.now()) {
+    throw new ApiError(401, 'Reset code is expired, please request a new one');
+  }
+
+  // verify the reset code
+  user.passwordResetVerified = true;
+  await user.save();
+
+  res.status(200).json({ status: 'success', message: 'Reset code verified' });
+});
+
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const { email, newPassword } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(401, 'Invalid email or reset code');
+  }
+
+  if (!user.passwordResetVerified) {
+    throw new ApiError(401, 'Reset code is not verified');
+  }
+
+  // if (user.passwordResetExpires < Date.now()) {
+  //   throw new ApiError(401, 'Reset code is expired, please request a new one');
+  // }
+
+  user.password = newPassword;
+  user.passwordResetCode = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordResetVerified = undefined;
+
+  const savedUser = await user.save();
+
+  console.log(savedUser);
+
+  const token = createToken({ userId: user._id });
+
+  res
+    .status(200)
+    .json({ status: 'success', message: 'Password reset success', token });
+});
