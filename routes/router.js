@@ -19,5 +19,4 @@ router.use('/products', productRoute);
 router.use('/users', userRoute);
 router.use('/auth', authRoute);
 
-
 module.exports = router;
