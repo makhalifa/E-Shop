@@ -83,6 +83,50 @@ exports.deleteUserValidator = [
 exports.changeUserPasswordValidator = [
   check('id').isMongoId().withMessage('Invalid ID'),
 
+  // body('currentPassword')
+  //   .notEmpty()
+  //   .withMessage('Current password is required')
+  //   .isLength({ min: 6 })
+  //   .withMessage('Current password must be at least 6 characters')
+  //   .isLength({ max: 32 })
+  //   .withMessage('Current password must be at most 32 characters'),
+
+  body('passwordConfirm')
+    .notEmpty()
+    .withMessage('Password confirmation is required'),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
+    .isLength({ max: 32 })
+    .withMessage('Password must be at most 32 characters')
+    .custom(async (pass, { req }) => {
+      // 1) Check if password is correct
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      // const IsMatch = await bcrypt.compareSync(
+      //   req.body.currentPassword,
+      //   user.password
+      // );
+      // if (!IsMatch) {
+      //   throw new Error('Current password is incorrect');
+      // }
+
+      // 2) Check if password confirmation matches the new password
+      if (pass !== req.body.passwordConfirm) {
+        throw new Error('Password Confirmation is incorrect');
+      }
+
+      return true;
+    }),
+  validationMiddleware,
+];
+
+exports.changeLoggedUserPasswordValidator = [
   body('currentPassword')
     .notEmpty()
     .withMessage('Current password is required')
@@ -104,7 +148,7 @@ exports.changeUserPasswordValidator = [
     .withMessage('Password must be at most 32 characters')
     .custom(async (pass, { req }) => {
       // 1) Check if password is correct
-      const user = await User.findById(req.params.id);
+      const user = await User.findById(req.user._id);
       if (!user) {
         throw new Error('User not found');
       }
@@ -126,14 +170,32 @@ exports.changeUserPasswordValidator = [
   validationMiddleware,
 ];
 
-exports.loginUserValidator = [
-  check('email').isEmail().withMessage('Invalid email'),
-  check('password')
-    .notEmpty()
-    .withMessage('Password is required')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters')
-    .isLength({ max: 32 })
-    .withMessage('Password must be at most 32 characters'),
+exports.updateLoggedUserValidator = [
+  body('name')
+    .optional()
+    .isLength({ min: 3 })
+    .withMessage('Too short name')
+    .custom((value, { req }) => {
+      req.body.slug = slugify(value);
+      return true;
+    }),
+
+  body('email')
+    .optional()
+    .isEmail()
+    .withMessage('Invalid email')
+    .custom((val) =>
+      User.findOne({ email: val }).then((user) => {
+        if (user) {
+          return Promise.reject(new Error('Email already in use'));
+        }
+      })
+    ),
+
+  body('phone')
+    .optional()
+    .isMobilePhone(['ar-EG', 'en-US'], { strictMode: true })
+    .withMessage('Invalid phone number'),
+
   validationMiddleware,
 ];
