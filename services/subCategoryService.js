@@ -31,15 +31,15 @@ exports.getSubCategory = Factory.getOne(SubCategory);
 
 // @desc    Create new sub-category
 // @route   POST /api/v1/subcategories
-// @access  Private
+// @access  Private - Admin, Moderator
 exports.createSubCategory = Factory.createOne(SubCategory);
 
 // @desc    Update sub-category by id
 // @route   PUT /api/v1/subcategories/:id
-// @access  Private
+// @access  Private - Admin, Moderator
 exports.updateSubCategory = Factory.updateOne(SubCategory);
 
 // @desc    Delete sub-category by id
 // @route   DELETE /api/v1/subcategories/:id
-// @access  Private
+// @access  Private - Admin
 exports.deleteSubCategory = Factory.deleteOne(SubCategory);
