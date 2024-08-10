@@ -1,5 +1,5 @@
 const slugify = require('slugify');
-const { check } = require('express-validator');
+const { check, body } = require('express-validator');
 
 const User = require('../../models/userModel');
 
@@ -59,5 +59,74 @@ exports.loginValidator = [
     .withMessage('Password must be at least 6 characters')
     .isLength({ max: 32 })
     .withMessage('Password must be at most 32 characters'),
+  validationMiddleware,
+];
+
+exports.forgetPasswordValidator = [
+  check('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email')
+    .custom(async (val, { req }) => {
+      // 1) check if user exists
+      const user = await User.findOne({ email: val });
+      if (!user) {
+        throw new Error('There is no user with that email');
+      }
+
+      // TODO CHECK IF HE FORGOT PASSWORD BEFORE
+      const now = Date.now();
+      if (user.passwordResetExpires > now) {
+        throw new Error('Password reset has not been requested yet');
+      }
+
+      req.user = user;
+      return true;
+    }),
+
+  validationMiddleware,
+];
+
+exports.verifyPasswordResetCodeValidator = [
+  body('resetCode')
+    .notEmpty()
+    .withMessage('Reset code is required')
+    .isLength(6)
+    .withMessage('Reset code must be 6 digits'),
+
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email'),
+
+  validationMiddleware,
+];
+
+exports.resetPasswordValidator = [
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Invalid email'),
+
+  body('newPassword')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
+    .isLength({ max: 32 })
+    .withMessage('Password must be at most 32 characters'),
+
+  body('newPasswordConfirm')
+    .notEmpty()
+    .withMessage('Password confirmation is required')
+    .custom((pass, { req }) => {
+      if (pass !== req.body.newPassword) {
+        throw new Error('Passwords do not match');
+      }
+      return true;
+    }),
   validationMiddleware,
 ];
