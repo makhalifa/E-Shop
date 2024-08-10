@@ -10,6 +10,10 @@ const {
   removePasswordField,
   changeUserPassword,
   changeUserPasswordDto,
+  getLoggedUserData,
+  ChangeLoggedUserPasswrd,
+  updateLoggedUserData,
+  deactivateLoggedUser,
 } = require('../services/userService');
 const {
   createUserValidator,
@@ -17,9 +21,28 @@ const {
   updateUserValidator,
   deleteUserValidator,
   changeUserPasswordValidator,
+  changeLoggedUserPasswordValidator,
+  updateLoggedUserValidator,
 } = require('../utils/validators/userValidator');
 
+const authService = require('../services/authService');
+
 const router = express.Router();
+
+// Protect all routes after this middleware 🔒🔒🔒
+router.use(authService.protect);
+
+router.get('/me', getLoggedUserData, getUser);
+router.put('/me', updateLoggedUserValidator, updateLoggedUserData);
+router.delete('/me', deactivateLoggedUser);
+router.put(
+  '/me/change-password',
+  changeLoggedUserPasswordValidator,
+  ChangeLoggedUserPasswrd
+);
+
+// Restrict all routes after this middleware 🛡️🛡️🛡️ 🛠️🛠️🛠️ 👨🏻‍💻👨🏻‍💻👨🏻‍💻
+router.use(authService.allowedTo('admin'));
 
 router.put(
   '/change-password/:id',
