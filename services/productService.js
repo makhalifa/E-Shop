@@ -1,7 +1,5 @@
 const sharp = require('sharp');
-const {
-  uploadMixOfImages,
-} = require('../middlewares/uploadImageMiddleware');
+const { uploadMixOfImages } = require('../middlewares/uploadImageMiddleware');
 const Product = require('../models/productModel');
 const Factory = require('./handlersFactory');
 
@@ -33,7 +31,8 @@ exports.resizeProductImages = async (req, res, next) => {
   // Image processing for images
   if (req.files.images) {
     req.body.images = [];
-    await Promise.all(  // use Promise.all to process all images
+    await Promise.all(
+      // use Promise.all to process all images
       req.files.images.map(async (img, i) => {
         const filename = `product-${Date.now()}-${i + 1}.jpeg`;
         await sharp(img.buffer)
@@ -57,7 +56,7 @@ exports.getProducts = Factory.getAll(Product);
 // @desc    Get specific product by id
 // @route   GET /api/v1/products/:id
 // @access  Public
-exports.getProduct = Factory.getOne(Product);
+exports.getProduct = Factory.getOne(Product, { path: 'reviews' });
 
 // @desc    Create new product
 // @route   POST /api/v1/products
