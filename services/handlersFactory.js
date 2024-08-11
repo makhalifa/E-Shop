@@ -2,12 +2,13 @@ const asyncHandler = require('express-async-handler');
 const ApiError = require('../utils/apiError');
 const ApiFeatures = require('../utils/apiFeatures');
 
-exports.getOne = (Model) =>
+exports.getOne = (Model, popOptions) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    const query = Model.findById(id);
-    // if (popOptions) query = query.populate(popOptions);
-    const doc = await query;
+
+    let query = Model.findById(id); // mongoose query
+    if (popOptions) query = query.populate(popOptions); // populate query
+    const doc = await query;  // execute query
     if (!doc) {
       return next(new ApiError(404, `No document found with this id ${id}`));
     }
