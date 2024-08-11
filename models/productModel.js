@@ -69,7 +69,12 @@ const productSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    // to enable virtuals
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 const setImageUrl = (doc) => {
@@ -92,6 +97,16 @@ productSchema.post('init', (doc) => {
 productSchema.post('save', (doc) => {
   setImageUrl(doc);
 });
+
+// // Virtuals
+productSchema.virtual(
+  'reviews', // virtual field
+  {
+    ref: 'Review', // model name
+    foreignField: 'product', // foreign key field in review model
+    localField: '_id', // local key field in product model
+  }
+);
 
 // pre /^find/ => will be executed before find query
 productSchema.pre(/^find/, function (next) {
