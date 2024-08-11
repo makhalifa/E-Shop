@@ -28,4 +28,13 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// middleware populate
+reviewSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'user',
+    select: 'name profileImg',
+  });
+  next();
+});
+
 module.exports = mongoose.model('Review', reviewSchema);
