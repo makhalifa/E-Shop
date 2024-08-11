@@ -45,7 +45,7 @@ exports.updateReviewValidator = [
         if (!review) {
           return Promise.reject(new Error('Review not found'));
         }
-        if (review.user.toString() !== req.user._id.toString()) {
+        if (review.user._id.toString() !== req.user._id.toString()) {
           return Promise.reject(
             new Error('You are not authorized to update this review')
           );
@@ -74,7 +74,7 @@ exports.deleteReviewValidator = [
             return Promise.reject(new Error('Review not found'));
           }
 
-          if (review.user.toString() !== req.user._id.toString()) {
+          if (review.user._id.toString() !== req.user._id.toString()) {
             return Promise.reject(
               new Error('You are not authorized to delete this review')
             );
