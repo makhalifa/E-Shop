@@ -10,13 +10,15 @@ const subCategoryRoute = require('./subCategoryRoute');
 const productRoute = require('./productRoute');
 const userRoute = require('./userRoute');
 const authRoute = require('./authRoute');
+const reviewRoute = require('./reviewRoute');
 
 // Define routes for different resources
+router.use('/auth', authRoute);
+router.use('/users', userRoute);
 router.use('/brands', brandRoute);
+router.use('/products', productRoute);
 router.use('/categories', categoryRoute);
 router.use('/subcategories', subCategoryRoute);
-router.use('/products', productRoute);
-router.use('/users', userRoute);
-router.use('/auth', authRoute);
+router.use('/reviews', reviewRoute);
 
 module.exports = router;
