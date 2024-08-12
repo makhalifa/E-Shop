@@ -21,16 +21,17 @@ exports.createCouponValidator = [
 ];
 
 exports.updateCouponValidator = [
-  check('name').optional().withMessage('Name is required'),
-
+  check('name').optional().notEmpty().withMessage('Name is required'),
   check('discount')
     .optional()
+    .notEmpty()
     .withMessage('Discount is required')
     .isFloat({ min: 0, max: 100 })
     .withMessage('Discount must be between 0 and 100'),
 
   check('expiry')
     .optional()
+    .notEmpty()
     .withMessage('Expiry date is required')
     .isDate()
     .withMessage('Expiry date must be a valid date'),
