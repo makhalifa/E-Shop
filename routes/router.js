@@ -11,7 +11,8 @@ const productRoute = require('./productRoute');
 const userRoute = require('./userRoute');
 const authRoute = require('./authRoute');
 const reviewRoute = require('./reviewRoute');
-const wishlistRoute = require('./wishlistRoute')
+const wishlistRoute = require('./wishlistRoute');
+const addressRoute = require('./addressRoute');
 
 // Define routes for different resources
 router.use('/auth', authRoute);
@@ -22,5 +23,6 @@ router.use('/categories', categoryRoute);
 router.use('/subcategories', subCategoryRoute);
 router.use('/reviews', reviewRoute);
 router.use('/wishlist', wishlistRoute);
+router.use('/addresses', addressRoute);
 
 module.exports = router;
