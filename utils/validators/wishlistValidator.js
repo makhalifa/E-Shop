@@ -17,3 +17,8 @@ exports.addToWishlistValidator = [
     ),
   validationMiddleware,
 ];
+
+exports.removeFromWishlistValidator = [
+  check('productId').isMongoId().withMessage('Invalid ID'),
+  validationMiddleware,
+];
