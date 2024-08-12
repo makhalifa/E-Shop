@@ -45,5 +45,9 @@ exports.getLoggedUserWishlist = AsyncHandler(async (req, res, next) => {
     select: 'name slug price',
   });
 
-  res.status(200).json({ data: user.wishlist });
+  res.status(200).json({
+    status: 'success',
+    result: user.wishlist.length,
+    data: user.wishlist,
+  });
 });
