@@ -13,6 +13,7 @@ const authRoute = require('./authRoute');
 const reviewRoute = require('./reviewRoute');
 const wishlistRoute = require('./wishlistRoute');
 const addressRoute = require('./addressRoute');
+const couponRoute = require('./couponRoute');
 
 // Define routes for different resources
 router.use('/auth', authRoute);
@@ -24,5 +25,6 @@ router.use('/subcategories', subCategoryRoute);
 router.use('/reviews', reviewRoute);
 router.use('/wishlist', wishlistRoute);
 router.use('/addresses', addressRoute);
+router.use('/coupons', couponRoute);
 
 module.exports = router;
