@@ -19,7 +19,7 @@ exports.createReviewValidator = [
   check('product')
     .isMongoId()
     .withMessage('Invalid ID')
-    .custom((value, { req }) => {
+    .custom((value, { req }) => 
       // check if logged user create review before on this product
       Review.findOne({ user: req.user._id, product: req.body.product }).then(
         (review) => {
@@ -29,9 +29,8 @@ exports.createReviewValidator = [
             );
           }
         }
-      );
-      return true;
-    }),
+      )
+    ),
   validationMiddleware,
 ];
 
