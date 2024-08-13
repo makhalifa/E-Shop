@@ -1,9 +1,20 @@
-const { check } = require('express-validator');
+const { check, body } = require('express-validator');
 
 const validationMiddleware = require('../../middlewares/validatorMiddleware');
 
+const Coupon = require('../../models/couponModel');
+
 exports.createCouponValidator = [
-  check('name').notEmpty().withMessage('Name is required'),
+  body('name')
+    .notEmpty()
+    .withMessage('Name is required')
+    .custom((value, { req }) =>
+      Coupon.findOne({ name: value }).then((coupon) => {
+        if (coupon) {
+          throw new Error('Coupon already exists');
+        }
+      })
+    ),
 
   check('discount')
     .notEmpty()
@@ -14,7 +25,7 @@ exports.createCouponValidator = [
   check('expiry')
     .notEmpty()
     .withMessage('Expiry date is required')
-    .isDate()
+    .isDate('YYYY-MM-DD')
     .withMessage('Expiry date must be a valid date'),
 
   validationMiddleware,
