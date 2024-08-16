@@ -242,7 +242,7 @@ exports.webhookCheckout = asyncHandler(async (req, res) => {
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
-      createOnlineOrder(event.data.object);
+      await createOnlineOrder(event.data.object);
       res.status(200).json({ received: true });
 
       break;
