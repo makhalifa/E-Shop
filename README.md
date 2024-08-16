@@ -10,10 +10,9 @@ Welcome to the E-Shop project! This is a fully functional e-commerce API develop
 - [Installation](#installation)
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
-- [Directory Structure](#directory-structure)
 - [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
+- [Author](#author)
 
 ## Features
 
