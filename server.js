@@ -5,6 +5,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const morgan = require('morgan'); // http request logger
+const cors = require('cors');
+const compression = require('compression');
 
 dotenv.config({ path: 'config.env' });
 
@@ -21,6 +23,21 @@ const app = express();
 
 // routes
 const routes = require('./routes/router');
+const { webhookCheckout } = require('./services/orderService');
+
+// webhook checkout
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout
+);
+
+// compression
+app.use(compression());
+
+// cors
+app.use(cors());
+app.options('*', cors());
 
 // middleware
 app.use(express.json()); // for parsing application/json
