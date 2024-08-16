@@ -28,6 +28,11 @@ const orderSchema = mongoose.Schema(
       postalCode: String,
     },
 
+    paymentInfo: {
+      id: String,
+      status: String,
+    },
+
     paymentMethod: { type: String, enum: ['online', 'cash'], default: 'cash' },
 
     taxPrice: { type: Number, default: 0.0 },
