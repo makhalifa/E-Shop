@@ -40,7 +40,7 @@ app.use(cors());
 app.options('*', cors());
 
 // middleware
-app.use(express.json()); // for parsing application/json
+app.use(express.json({ limit: '10kb' })); // for parsing application/json, set limit to 10kb
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 if (process.env.NODE_ENV === 'development') {
