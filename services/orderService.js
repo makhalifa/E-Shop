@@ -179,7 +179,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
 
 const createOnlineOrder = async (session) => {
   const cartId = session.client_reference_id;
-  const { shippingAddress } = session.metadata;
+  const shippingAddress = session.metadata;
   const orderPrice = session.amount_total / 100;
   const taxPrice = 0;
   const shippingPrice = 0;
@@ -189,19 +189,18 @@ const createOnlineOrder = async (session) => {
     throw new ApiError(404, 'Cart not found');
   }
 
-  const user = await User.findOne({ _id: session.customer_email });
+  const user = await User.findOne({ email: session.customer_email });
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
 
   const totalPrice = orderPrice + taxPrice + shippingPrice;
 
   const order = await Order.create({
-    user: req.user._id,
+    user: user._id,
     orderItems: cart.products,
-    totalPrice: totalPrice,
+    totalPrice,
     shippingAddress,
-    paymentInfo: {
-      id: session.id,
-      status: session.payment_status,
-    },
     paymentMethod: 'online',
     isPaid: true,
     paidAt: Date.now(),
@@ -214,7 +213,7 @@ const createOnlineOrder = async (session) => {
   const bulkOptions = cart.products.map((item) => ({
     updateOne: {
       filter: { _id: item.product },
-      update: { $inc: { quantity: -item.count, sold: +item.count } },
+      update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
     },
   }));
 
