@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 const asyncHandler = require('express-async-handler');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -8,6 +9,7 @@ const Factory = require('./handlersFactory');
 const Product = require('../models/productModel');
 const Cart = require('../models/cartModel');
 const Order = require('../models/orderModel');
+const User = require('../models/userModel');
 
 // @desc    create cash order
 // @route   POST /api/v1/orders
@@ -175,6 +177,52 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: 'success', session });
 });
 
+const createOnlineOrder = async (session) => {
+  const cartId = session.client_reference_id;
+  const { shippingAddress } = session.metadata;
+  const orderPrice = session.amount_total / 100;
+  const taxPrice = 0;
+  const shippingPrice = 0;
+
+  const cart = await Cart.findOne({ _id: cartId });
+  if (!cart) {
+    throw new ApiError(404, 'Cart not found');
+  }
+
+  const user = await User.findOne({ _id: session.customer_email });
+
+  const totalPrice = orderPrice + taxPrice + shippingPrice;
+
+  const order = await Order.create({
+    user: req.user._id,
+    orderItems: cart.products,
+    totalPrice: totalPrice,
+    shippingAddress,
+    paymentInfo: {
+      id: session.id,
+      status: session.payment_status,
+    },
+    paymentMethod: 'online',
+    isPaid: true,
+    paidAt: Date.now(),
+  });
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  const bulkOptions = cart.products.map((item) => ({
+    updateOne: {
+      filter: { _id: item.product },
+      update: { $inc: { quantity: -item.count, sold: +item.count } },
+    },
+  }));
+
+  await Product.bulkWrite(bulkOptions);
+
+  await Cart.findByIdAndDelete(cartId);
+};
+
 // webhook
 exports.webhookCheckout = asyncHandler(async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -193,11 +241,9 @@ exports.webhookCheckout = asyncHandler(async (req, res) => {
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
-      // eslint-disable-next-line no-case-declarations
-      const checkoutSessionCompleted = event.data.object;
-      console.log(checkoutSessionCompleted);
-      console.log('Create Order Here ...');
-      // Then define and call a function to handle the event checkout.session.completed
+      createOnlineOrder(event.data.object);
+      res.status(200).json({ received: true });
+
       break;
     // ... handle other event types
     default:
