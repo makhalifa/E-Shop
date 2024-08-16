@@ -104,11 +104,11 @@ Welcome to the E-Shop project! This is a fully functional e-commerce API develop
 
 ## Usage
 
-- **Register a new user**: POST `/api/users/register`
-- **Login**: POST `/api/users/login`
-- **View Products**: GET `/api/products`
-- **Add Product to Cart**: POST `/api/cart`
-- **Place Order**: POST `/api/orders`
+- **Register a new user**: POST `/api/v1/auth/signup`
+- **Login**: POST `/api/v1/auth/login`
+- **View Products**: GET `/api/v1/products`
+- **Add Product to Cart**: POST `/api/v1/cart`
+- **Place Order**: POST `/api/v1/orders`
 
 ## API Endpoints
 
