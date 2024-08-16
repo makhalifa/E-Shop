@@ -223,7 +223,9 @@ const createOnlineOrder = async (session) => {
   await Cart.findByIdAndDelete(cartId);
 };
 
-// webhook
+// @desc    webhook for stripe when checkout session is completed
+// @route   POST /api/v1/orders/webhook
+// @access  private - user
 exports.webhookCheckout = asyncHandler(async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
