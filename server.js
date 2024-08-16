@@ -10,6 +10,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
 const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 
 dotenv.config({ path: 'config.env' });
 
@@ -51,8 +52,11 @@ if (process.env.NODE_ENV === 'development') {
   console.log(`Mode: ${process.env.NODE_ENV}`);
 }
 
-// sanitize data
+// Sanitize data from user input like 'SQL Injection'
 app.use(mongoSanitize());
+
+// Prevent XSS attacks
+app.use(xss());
 
 // Limit each IP to 100 requests per `window` (here, per 60 minutes).
 const limiter = rateLimit({
