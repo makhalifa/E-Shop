@@ -8,6 +8,7 @@ const morgan = require('morgan'); // http request logger
 const cors = require('cors');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 
 dotenv.config({ path: 'config.env' });
 
@@ -52,12 +53,19 @@ if (process.env.NODE_ENV === 'development') {
 // Limit each IP to 100 requests per `window` (here, per 60 minutes).
 const limiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 15 minutes
-  limit: 100, 
+  limit: 100,
   message: 'Too many requests from this IP, please try again later!',
 });
 
 // Apply the rate limiting middleware to all requests.
 app.use(limiter);
+
+// middleware to protect against HTTP Parameter Pollution attacks
+app.use(
+  hpp({
+    whitelist: ['price', 'sold', 'ratingsAverage', 'ratingsQuantity'],
+  })
+);
 
 // routes
 app.get('/', (req, res) => {
